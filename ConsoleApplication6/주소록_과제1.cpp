@@ -5,22 +5,32 @@
 #include <windows.h>
 struct user
 {
-	char name[128];		//이름
-	char address[128];	//주소
-	char phonenum[128];	//전화번호
+	char * name;		//이름
+	char * address;	//주소
+	char * phonenum;	//전화번호
 };
-void Enter(user* arr){	//입력받는함수
-	printf("이름 : ");
-	gets(arr->name);
+void Nodememory(char* *data,char * title){
+	char temp[1024];
+	printf("%s",title);
+	gets(temp);
 	fflush(stdin);
-	printf("주소 : ");
-	gets(arr->address);
-	fflush(stdin);
-	printf("전화번호 : ");
-	gets(arr->phonenum);
-	fflush(stdin);
+	*data = (char *)malloc(strlen(temp) + 1);
+	strcpy(*data, temp);
 }
-void Print(user* arr){							//출력하는함수
+void Enter( user* arr){	//입력받는함수
+	Nodememory(&arr->name, "이름 : ");
+	Nodememory(&arr->address, "주소 : ");
+	Nodememory(&arr->phonenum, "전화번호 : ");
+}
+void Killdata( user* arr){
+	free(arr->name);
+	free(arr->address);
+	free(arr->phonenum);
+	arr->name = NULL;
+	arr->address = NULL;
+	arr->phonenum = NULL;
+}
+void Print(const user* arr){							//출력하는함수
 	printf("\n이름 : %s\n", arr->name);
 	printf("주소 : %s\n", arr->address);
 	printf("전화번호 : %s\n\n", arr->phonenum);
@@ -33,7 +43,7 @@ void Input(user* arr, int* count, int usermax){		//입력하는 함수
 	Enter(&arr[*count]);
 	(*count)++;
 }
-void Output(user* arr, int count){				//출력함수
+void Output( user* arr, int count){				//출력함수
 	if (count == 0){
 		printf("저장된 데이터가 없습니다."); 
 	}
@@ -43,7 +53,7 @@ void Output(user* arr, int count){				//출력함수
 		}
 	}
 }
-int SSearch(user* arr, int count,int *num,int max,char*sear){				//단일검색 기본 함수
+int SSearch(const user* arr, int count, int *num, int max, char*sear){				//단일검색 기본 함수
 	if (count == 0){
 		return 1;
 	}
@@ -57,7 +67,7 @@ int SSearch(user* arr, int count,int *num,int max,char*sear){				//단일검색 기본
 		return 2;
 	}
 }
-int MSearch(user* arr, int count, int *flag ,char * sear){		//다중검색 기본 함수
+int MSearch(const user* arr, int count, int *flag, char * sear){		//다중검색 기본 함수
 	int num = 0;
 	if (count == 0){
 		return 1;
@@ -78,15 +88,16 @@ int MSearch(user* arr, int count, int *flag ,char * sear){		//다중검색 기본 함수
 		}
 	}
 }
-void Movedata(user* arr, int num, int *count, int max){		//데이터삭제를 위한 datamove기본함수
-	for (int i = num; i < max; i++){
-		strcpy(arr[i].name, arr[i + 1].name);
-		strcpy(arr[i].address, arr[i + 1].address);
-		strcpy(arr[i].phonenum, arr[i + 1].phonenum);
-	}
-	*count -= 1;
+void Movedata( user* arr, int *count, int num, int max){		//데이터삭제를 위한 datamove기본함수
+		for (int i = num; i < *count; i++){
+			Killdata(&arr[i]);
+			arr[i].name = arr[i+1].name;
+			arr[i].address = arr[i + 1].address;
+			arr[i].phonenum = arr[i + 1].phonenum;
+		}
+		*count -= 1;
 }
-void SingleSearch(user* arr, int count,int max,char* *errmsg){		//단일검색함수
+void SingleSearch(const user* arr, int count, int max, char* *errmsg){		//단일검색함수
 	printf("검색하고 싶은 사람의 정확한 이름 : ");
 	int memberpoint=0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
@@ -97,7 +108,7 @@ void SingleSearch(user* arr, int count,int max,char* *errmsg){		//단일검색함수
 	}
 	printf("%s", errmsg[SSearch(arr, count, &memberpoint, max, sear)]);
 }
-void MultiSearch(user* arr, int count, int max, char* *errmsg){			//다중검색함수
+void MultiSearch(const user* arr, int count, int max, char* *errmsg){			//다중검색함수
 	printf("검색하고 싶은 사람의 이름 : ");
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
@@ -111,8 +122,9 @@ void MultiSearch(user* arr, int count, int max, char* *errmsg){			//다중검색함수
 		}
 	}
 	printf("%s", errmsg[MSearch(arr, count, flag, sear)]);
+//	free(sear);
 }
-void Change(user* arr, int count, int max, char* *errmsg){		//수정함수( 정확히 일치하는 이름만 수정가능
+void Change( user* arr, int count, int max, char* *errmsg){		//수정함수( 정확히 일치하는 이름만 수정가능
 	printf("수정하고 싶은 사람의 정확한 이름 : ");
 	int memberpoint = 0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
@@ -121,6 +133,7 @@ void Change(user* arr, int count, int max, char* *errmsg){		//수정함수( 정확히 �
 	printf("%s", errmsg[SSearch(arr, count, &memberpoint, max, sear)]);
 	if (SSearch(arr, count, &memberpoint, max, sear) == 0){
 		printf("수정할 정보\n");
+		Killdata(&arr[memberpoint]);
 		Enter(arr + memberpoint);
 	}
 }
@@ -129,13 +142,14 @@ void SingleDelete(user* arr, int *count, int max, char* *errmsg){		//단일삭제함�
 	int memberpoint = 0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
-	fflush(stdin);
-	if (SSearch(arr, *count, &memberpoint, max, sear) == 0){
-		Movedata(arr, memberpoint, &*count, max);
+	fflush(stdin); 
+	int re = SSearch(arr, *count, &memberpoint, max, sear);
+	if (re == 0){
+		Movedata(arr, count, memberpoint, max);
 	}
-	printf("%s", errmsg[SSearch(arr, *count, &memberpoint, max, sear)]);
+	printf("%s", errmsg[re]);
 }
-void MultiDelete(user* arr, int *count, int max,char* *errmsg){		//다중삭제
+void MultiDelete( user* arr, int *count, int max, char* *errmsg){		//다중삭제
 	printf("삭제하고 싶은 사람의 정확한 이름 : ");
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
@@ -147,47 +161,60 @@ void MultiDelete(user* arr, int *count, int max,char* *errmsg){		//다중삭제
 	if (MSearch(arr, *count, flag, sear) == 0){
 		while (flag[arraycount] != -1){
 			flag[arraycount] -= arraycount;		//배열 요소가 이동하면서 생기는 arraycount 정보 수정
-			Movedata(arr, flag[arraycount], &*count, max);
+			Movedata(arr, count, flag[arraycount], max);
 			arraycount++;
 		}
 	}
+	//free(sear);
 }
-void InputUserNumber(user* *arr,int *max){
+void InputUserNumber(user* *arr, int *max){
 	printf("User Max :");
 	scanf_s("%d", max);
 	fflush(stdin);
 	*arr = (user *)malloc(sizeof(user)* *max);
 }
-void Fileprint(user* arr, int usermax,int count){
+void FilePrint(const user* arr, int usermax, int count){
 	FILE *fp;
 	printf("주소록을 저장합니다.\n");
 	fp = fopen("addressbook.txt", "w");
 	fprintf(fp, "%d\n", usermax);
 	for (int index = 0; index < count; index++)
 	{
-		fprintf(fp, "%s ,%s ,%s\n", arr[index].name, arr[index].address, arr[index].phonenum);
+		fprintf(fp, "%s\n%s\n%s\n", arr[index].name, arr[index].address, arr[index].phonenum);
 	}
 	fclose(fp);
 }
-void FileScan(user* *arr, int *usermax, int *count){
+char* FileDataScan(FILE * fp,char **pData){
+	char temp[1024] = { " " };
+	char* tester;
+	tester=fgets(temp, 1024, fp);
+	*pData = (char *)malloc(strlen(temp));
+	strcpy(*pData, temp);
+	(*pData)[strlen(temp) - 1] = NULL;
+	return tester;
+}
+void FileScan( user* arr, int *usermax, int *count){
 	FILE *fp;
 	fp = fopen("addressbook.txt", "r");
 	if (fp == NULL)
 		printf("주소록이 없습니다.");
 	else{
 		printf("주소록을 읽어옵니다.\n");
-		fscanf(fp, "%d\n", &*usermax);
-		int index = 0;
-		free(*arr);
-		*arr = (user *)malloc(sizeof(user)* (*usermax));
+		fscanf(fp, "%d\n", usermax);
+		int index = 0; 
+		free(arr);
+		arr = (user *)malloc(sizeof(user)* (*usermax));
 		while (!feof(fp))
 		{
-			fscanf(fp, "%s ,%s ,%s\n", &arr[index]->name, &arr[index]->address, &arr[index]->phonenum);
+			if(FileDataScan(fp, &arr[index].name)==NULL)break;
+			FileDataScan(fp, &arr[index].address);
+			FileDataScan(fp, &arr[index].phonenum);
 			index++;
+
 		}
 		*count = index;
-		fclose(fp);
 	}
+	fclose(fp);
 }
 void main()
 {
@@ -196,9 +223,9 @@ void main()
 	int count = 0; //개수를 알려주는 변수
 	int usermax=0;
 	InputUserNumber(&arr, &usermax);
-	char * SearchErrMsg[] = {"찾기성공", "등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다."};
+	char * SearchErrMsg[] = {"찾기성공", "삭제 등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다."};
 	char * ChangeErrMsg[] = {"찾기성공", "등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
-	char * DeleteErrMsg[] = {"삭제성공", "등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
+	char * DeleteErrMsg[] = {"삭제성공", "삭제 등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
 	while (mode != '0'){
 		printf("\nmode 선택 ( 1 = 입력 , 2 = 출력 , 3 = 단일검색(정확한 이름), 4 = 다중검색(포함된 글자), 5= 수정(정확한 이름), 6 = 단일삭제(정확한 이름), 7 = 다중삭제(포함된 글자), 8 = 파일저장, 9 = 파일로드 0 = 종료) \n");
 		mode = getchar();
@@ -228,29 +255,10 @@ void main()
 			MultiDelete(arr, &count, usermax, DeleteErrMsg);
 			break;
 		case '8':
-			Fileprint(arr, usermax, count);
+			FilePrint(arr, usermax, count);
 			break;
 		case '9':
-			FileScan(&arr, &usermax, &count);
-			//FILE *fp;
-			//fp = fopen("addressbook.txt", "r");
-			//if (fp == NULL)
-			//	printf("주소록이 없습니다.");
-			//else{
-			//	printf("주소록을 읽어옵니다.\n");
-			//	fscanf(fp, "%d\n", &usermax);
-			//	int index = 0;
-			//	free(arr);
-			//	arr = (user *)malloc(sizeof(user)* (usermax));
-			//	while (!feof(fp))
-			//	{
-			//		//공백으로 분리된 파일 읽기
-			//		fscanf(fp, "%s ,%s ,%s\n", arr[index].name, arr[index].address, arr[index].phonenum);
-			//		index++;
-			//	}
-			//	count = index;
-			//	fclose(fp);
-			//}
+			FileScan(arr, &usermax, &count);
 			break;
 		default:
 			mode = '0';
