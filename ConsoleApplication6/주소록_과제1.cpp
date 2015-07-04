@@ -23,12 +23,12 @@ void Enter( user* arr){	//입력받는함수
 	Nodememory(&arr->phonenum, "전화번호 : ");
 }
 void Killdata( user* arr){
-	free(arr->name);
-	free(arr->address);
-	free(arr->phonenum);
 	arr->name = NULL;
 	arr->address = NULL;
 	arr->phonenum = NULL;
+	free(arr->name);
+	free(arr->address);
+	free(arr->phonenum);
 }
 void Print(const user* arr){							//출력하는함수
 	printf("\n이름 : %s\n", arr->name);
@@ -122,7 +122,7 @@ void MultiSearch(const user* arr, int count, int max, char* *errmsg){			//다중검
 		}
 	}
 	printf("%s", errmsg[MSearch(arr, count, flag, sear)]);
-//	free(sear);
+	free(flag);
 }
 void Change( user* arr, int count, int max, char* *errmsg){		//수정함수( 정확히 일치하는 이름만 수정가능
 	printf("수정하고 싶은 사람의 정확한 이름 : ");
@@ -165,7 +165,7 @@ void MultiDelete( user* arr, int *count, int max, char* *errmsg){		//다중삭제
 			arraycount++;
 		}
 	}
-	//free(sear);
+	free(flag);
 }
 void InputUserNumber(user* *arr, int *max){
 	printf("User Max :");
