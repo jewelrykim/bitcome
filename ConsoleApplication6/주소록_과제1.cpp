@@ -97,7 +97,7 @@ void Movedata( user* arr, int *count, int num, int max){		//데이터삭제를 위한 da
 		}
 		*count -= 1;
 }
-void SingleSearch(const user* arr, int count, int max, char* *errmsg){		//단일검색함수
+void SingleSearch(const user* arr, int count, int max, char* *SearchMsg){		//단일검색함수
 	printf("검색하고 싶은 사람의 정확한 이름 : ");
 	int memberpoint=0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
@@ -106,9 +106,9 @@ void SingleSearch(const user* arr, int count, int max, char* *errmsg){		//단일검
 	if (SSearch(arr, count, &memberpoint, max, sear) == 0){
 		Print(arr + memberpoint);
 	}
-	printf("%s", errmsg[SSearch(arr, count, &memberpoint, max, sear)]);
+	printf("%s", SearchMsg[SSearch(arr, count, &memberpoint, max, sear)]);
 }
-void MultiSearch(const user* arr, int count, int max, char* *errmsg){			//다중검색함수
+void MultiSearch(const user* arr, int count, int max, char* *SearchMsg){			//다중검색함수
 	printf("검색하고 싶은 사람의 이름 : ");
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
@@ -121,23 +121,24 @@ void MultiSearch(const user* arr, int count, int max, char* *errmsg){			//다중검
 			arraycount++;
 		}
 	}
-	printf("%s", errmsg[MSearch(arr, count, flag, sear)]);
+	printf("%s", SearchMsg[MSearch(arr, count, flag, sear)]);
 	free(flag);
 }
-void Change( user* arr, int count, int max, char* *errmsg){		//수정함수( 정확히 일치하는 이름만 수정가능
+void Change(user* arr, int count, int max,char* *SearchMsg, char* *ChangeMsg){		//수정함수( 정확히 일치하는 이름만 수정가능
 	printf("수정하고 싶은 사람의 정확한 이름 : ");
 	int memberpoint = 0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
 	fflush(stdin);
-	printf("%s", errmsg[SSearch(arr, count, &memberpoint, max, sear)]);
+	printf("%s", SearchMsg[SSearch(arr, count, &memberpoint, max, sear)]);
 	if (SSearch(arr, count, &memberpoint, max, sear) == 0){
 		printf("수정할 정보\n");
 		Killdata(&arr[memberpoint]);
 		Enter(arr + memberpoint);
 	}
+	printf("%s", ChangeMsg[SSearch(arr, count, &memberpoint, max, sear)]);
 }
-void SingleDelete(user* arr, int *count, int max, char* *errmsg){		//단일삭제함수
+void SingleDelete(user* arr, int *count, int max, char* *DeleteMsg){		//단일삭제함수
 	printf("삭제하고 싶은 사람의 정확한 이름 : ");
 	int memberpoint = 0;
 	char sear[128] = { ' ' };//검색할 이름 저장변수
@@ -147,9 +148,9 @@ void SingleDelete(user* arr, int *count, int max, char* *errmsg){		//단일삭제함�
 	if (re == 0){
 		Movedata(arr, count, memberpoint, max);
 	}
-	printf("%s", errmsg[re]);
+	printf("%s", DeleteMsg[re]);
 }
-void MultiDelete( user* arr, int *count, int max, char* *errmsg){		//다중삭제
+void MultiDelete( user* arr, int *count, int max, char* *DeleteMsg){		//다중삭제
 	printf("삭제하고 싶은 사람의 정확한 이름 : ");
 	char sear[128] = { ' ' };//검색할 이름 저장변수
 	gets(sear);
@@ -157,7 +158,7 @@ void MultiDelete( user* arr, int *count, int max, char* *errmsg){		//다중삭제
 	int arraycount = 0;
 	int a = 0;
 	int * flag = (int *)malloc(sizeof(int)*max);
-	printf("%s", errmsg[MSearch(arr, *count, flag, sear)]);
+	printf("%s", DeleteMsg[MSearch(arr, *count, flag, sear)]);
 	if (MSearch(arr, *count, flag, sear) == 0){
 		while (flag[arraycount] != -1){
 			flag[arraycount] -= arraycount;		//배열 요소가 이동하면서 생기는 arraycount 정보 수정
@@ -224,7 +225,7 @@ void main()
 	int usermax=0;
 	InputUserNumber(&arr, &usermax);
 	char * SearchErrMsg[] = {"찾기성공", "삭제 등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다."};
-	char * ChangeErrMsg[] = {"찾기성공", "등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
+	char * ChangeErrMsg[] = {"수정성공", "등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
 	char * DeleteErrMsg[] = {"삭제성공", "삭제 등록된 데이터가 없습니다.", "찾으려는 데이터가 존재하지 않습니다." };
 	while (mode != '0'){
 		printf("\nmode 선택 ( 1 = 입력 , 2 = 출력 , 3 = 단일검색(정확한 이름), 4 = 다중검색(포함된 글자), 5= 수정(정확한 이름), 6 = 단일삭제(정확한 이름), 7 = 다중삭제(포함된 글자), 8 = 파일저장, 9 = 파일로드 0 = 종료) \n");
@@ -246,7 +247,7 @@ void main()
 			MultiSearch(arr, count, usermax, SearchErrMsg);
 			break;
 		case '5':	// 수정
-			Change(arr, count, usermax, ChangeErrMsg);
+			Change(arr, count, usermax,SearchErrMsg, ChangeErrMsg);
 			break;
 		case '6':	// 단일삭제
 			SingleDelete(arr, &count, usermax, DeleteErrMsg);
